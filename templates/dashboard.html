@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualize Using LIDA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .navbar {
+            background-color: #003366;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 32px;
+            font-weight: bold;
+        }
+        .container {
+            display: flex;
+            flex: 1;
+        }
+        .left-panel {
+            width: 50%;
+            background-color: #e6e6e6;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            flex-direction: column;
+        }
+        .question-box {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 80%;
+            border-left: 5px solid #003366;
+        }
+        .question-box h3 {
+            color: #003366;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .question-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .question-list li {
+            background-color: #e6e6e6;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 4px;
+            color: #333;
+            font-size: 18px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .question-list li:hover {
+            background-color: #d9d9d9;
+            transform: scale(1.02);
+        }
+        .right-panel {
+            width: 50%;
+            background-color: #ffffff;
+            padding: 40px;
+        }
+        .visualisation-options {
+            margin-bottom: 10px; 
+            font-size: 23px;
+            color: #003366;
+        }
+        .visualisation-options h4 {
+            color: #003366;
+            margin-bottom: 10px;
+        }
+        .visualisation-options div {
+            margin-top: 10px;
+        }
+        .visualisation-options label {
+            font-size: 18px;
+            color: #333;
+            margin-right: 15px;
+            margin-bottom: 10px;
+        }
+        .visualisation-options input[type="text"] {
+            width: 95%; 
+            padding: 20px; 
+            margin-top: 35px; 
+            border-radius: 10px; 
+            border: 2px solid #003366; 
+            background-color: #f7f7f7; 
+            font-size: 18px; 
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
+            transition: all 0.3s ease;
+        }
+        .visualisation-options input[type="text"]:focus {
+            border-color: #0056b3; 
+            background-color: #fff; 
+            box-shadow: 0 0 10px rgba(0, 0, 255, 0.2); 
+        }
+        .styled-btn {
+        background-color: white;      
+        color: #003366;               
+        border: 2px solid #003366;    
+        padding: 5px 21px;          
+        text-align: center;           
+        text-decoration: none;        
+        display: inline-block;       
+        font-size: 16px;              
+        margin: 10px 2px;          
+        cursor: pointer;             
+        border-radius: 4px;           
+        transition: background-color 0.3s, border-color 0.3s; 
+}
+       
+    </style>
+</head>
+<body>
+    <div class="navbar">Visualize Using LIDA</div>
+    <div class="container">
+        <div class="left-panel">
+            <div class="question-box" style="width: 600px;">
+                <h3>Attendance Insights</h3>
+                <ul class="question-list">
+                    {% if goal_list %}
+                        {% for goal in goal_list %}
+                            <li onclick="sendGoalToCharts('{{ goal.question }}')" style="cursor: pointer;">
+                                {{ goal.question }}
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li>Select the class to generate queries.</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <div class="visualisation-options">
+                <h4>Select Class</h4>
+                <div>
+                    <label>
+                        <input type="radio" name="visualisation" value="tenth_A"> Tenth_A
+                    </label>
+                    <label>
+                        <input type="radio" name="visualisation" value="nine_A"> Nine_A
+                    </label>
+                    <button id="generateCsvBtn" class="styled-btn">Enter</button>
+                    <span id="csvMessage" style="display: none; margin-left: 10px; color: #003366; font-size: 16px;">CSV file is created</span>
+                </div>
+                <form action="/goals" method="get">
+                    <button type="submit" class="styled-btn">Generate Goals</button>
+                </form>
+                
+                <input type="text" placeholder=" Additional Queries..." style="width: 600px;">
+            </div>
+        </div>
+        <div class="right-panel">
+           
+        </div>
+    </div>
+    <script>
+        document.getElementById('generateCsvBtn').addEventListener('click', async function () {
+            const selectedClass = document.querySelector('input[name="visualisation"]:checked');
+            if (!selectedClass) {
+                alert('Please select a class.');
+                return;
+            }
+    
+            const visualisation = selectedClass.value;
+            const messageElement = document.getElementById('csvMessage');
+            try {
+              
+const response = await fetch(`http://localhost:3000/generate-csv?visualisation=${visualisation}`);
+
+    
+                if (response.ok) {
+                    const message = await response.text();
+                    alert(message);
+                    messageElement.style.display = 'inline'; 
+                   
+                } else {
+                    const errorMessage = await response.text();
+                    alert(`Error: ${errorMessage}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                messageElement.style.display = 'inline';
+                
+            }
+        });
+        document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const response = await fetch('http://localhost:5000/goals');
+    const data = await response.json();
+    const questionList = document.querySelector('.question-list');
+
+    data.goals.forEach(goal => {
+      const li = document.createElement('li');
+      li.textContent = goal; 
+      questionList.appendChild(li);
+    });
+  } catch (error) {
+    console.error('Error fetching goals:', error);
+  }
+});
+function sendGoalToCharts(goal) {
+        
+        window.location.href = `/charts?goal=${encodeURIComponent(goal)}`;
+    }
+    </script>
+    
+</body>
+</html>
+
+
+
+
