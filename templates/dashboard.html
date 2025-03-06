@@ -116,6 +116,20 @@
         cursor: pointer;             
         border-radius: 4px;           
         transition: background-color 0.3s, border-color 0.3s; 
+}   .userbtn {
+    background-color: #003366;      
+        color: white;               
+        border: 2px solid #003366;    
+        padding: 5px 21px;          
+        text-align: center;           
+        text-decoration: none;        
+        display: inline-block;       
+        font-size: 16px;              
+        margin: 10px 2px;          
+        cursor: pointer;             
+        border-radius: 4px;           
+        transition: background-color 0.3s, border-color 0.3s; 
+
 }
        
     </style>
@@ -143,10 +157,10 @@
                 <h4>Select Class</h4>
                 <div>
                     <label>
-                        <input type="radio" name="visualisation" value="tenth_A"> Tenth_A
+                        <input type="radio" name="visualisation" value="tenth_A"> Tenth A
                     </label>
                     <label>
-                        <input type="radio" name="visualisation" value="nine_A"> Nine_A
+                        <input type="radio" name="visualisation" value="nine_A"> Tenth B
                     </label>
                     <button id="generateCsvBtn" class="styled-btn">Enter</button>
                     <span id="csvMessage" style="display: none; margin-left: 10px; color: #003366; font-size: 16px;">CSV file is created</span>
@@ -155,11 +169,27 @@
                     <button type="submit" class="styled-btn">Generate Goals</button>
                 </form>
                 
-                <input type="text" placeholder=" Additional Queries..." style="width: 600px;">
+                <!-- <input type="text" placeholder=" Additional Queries..." style="width: 600px;">
+                <button id="userquery" class="userbtn">Send</button> -->
+                <div style="display: flex; align-items: center;">
+                    <input type="text"id="additionalQueryInput" placeholder=" Additional Queries..." style="width: 600px; margin-right: 10px;">
+                    <button 
+                    id="userquery" 
+                    class="userbtn" 
+                    style="flex-shrink: 0;" 
+                    onclick="sendGoalToCharts(document.getElementById('additionalQueryInput').value)">
+                    Send
+                </button>                    
+                </div>
+                
             </div>
         </div>
         <div class="right-panel">
-           
+      
+            <h1 id="goalTitle"></h1> 
+            <img id="chartImg" style="display: none; max-width: 100%; border: 1px solid #ccc;">
+            <!-- <img src="data:image/png;base64,${chart_base64}" alt="Chart" style="max-width: 100%; height: auto;"> -->
+            
         </div>
     </div>
     <script>
@@ -207,10 +237,38 @@ const response = await fetch(`http://localhost:3000/generate-csv?visualisation=$
     console.error('Error fetching goals:', error);
   }
 });
-function sendGoalToCharts(goal) {
+// function sendGoalToCharts(goal) {
         
-        window.location.href = `/charts?goal=${encodeURIComponent(goal)}`;
+//         window.location.href = `/charts?goal=${encodeURIComponent(goal)}`;
+  
+
+
+//     }
+async function sendGoalToCharts(goal) {
+    try {
+        const response = await fetch(`/charts?goal=${encodeURIComponent(goal)}`);
+        if (!response.ok) {
+            const errorMessage = await response.json();
+            alert(`Error: ${errorMessage.error}`);
+            return;
+        }
+
+        const data = await response.json();
+        const chartBase64 = data.chart_base64;
+        const goalTitle = document.getElementById("goalTitle");
+        goalTitle.textContent = `Goal: ${data.goal}`;
+        // Display the chart
+        const chartImg = document.getElementById("chartImg");
+        chartImg.src = `data:image/png;base64,${chartBase64}`;
+        chartImg.style.display = "block";
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while fetching the chart.');
     }
+}
+
+
+
     </script>
     
 </body>
